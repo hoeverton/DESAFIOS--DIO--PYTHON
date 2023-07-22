@@ -70,12 +70,16 @@ class Conta:
 
             self._saldo -= self.valor  
             print('\t Saque realizado com sucesso!')  
+            
+            self.historico.adicionar_transacao("saque", valor)
 
    
     def depositar(self,valor):
 
         if valor >0:
-            self._saldo =+ valor
+            self._saldo += valor
+            print('\t Deposito realizado com sucesso!')  
+            self.historico.adicionar_transacao("Deposito", valor)
 
         else:
             print("\t ERRO Valor inválido")    
@@ -116,24 +120,177 @@ class Historico:
     def transacoes(self):
         return self._transacoes    
 
-    def adicionar_transacao(self,transacao):
+    def adicionar_transacao(self,tipo,valor):
 
         self._transacoes.append({
 
-            "tipo":transacao.__class__.__name__,
-            "valor":transacao.valor, #?
-            "data": datetime.now().strftime("%d-%m-%Y %H:%M:%s")
+            "tipo": tipo,      
+            "valor": valor,        
+            "data": datetime.now().strftime("%d-%m-%Y %H:%M:%S")             
         })
 
-            
-cliente1 = PessoaFisica("000.000.000-00","Eto","18/1/1999","XY 55")
-conta_corrente1 = ContaCorrente(12345, cliente1)
-conta_corrente1.depositar(1000)
 
-conta_corrente1.sacar(100)
-conta_corrente1.sacar(100)
-conta_corrente1.sacar(100)
-conta_corrente1.sacar(100)
-print(conta_corrente1.saldo)
-print(conta_corrente1.saques_realizador)
-print(conta_corrente1.historico.transacoes)
+class Transacao(ABC):
+
+    @property
+    @classmethod
+    def valor(self):
+        pass
+
+    @classmethod
+    def registrar(self,valor):
+        pass
+
+class Deposito(Transacao):
+
+    def __init__(self,valor):
+
+        self._valor = valor
+
+    @property
+    def valor(self):
+
+        return  self._valor
+
+    def registrar(self,conta):
+
+        sucesso_transacao = conta.depositar(self.valor) 
+
+        if sucesso_transacao:
+
+            conta.historico.adicionar_transacao(self,'Deposito',self.valor)
+
+class Saque(ABC):
+
+    def __init__(self,valor):
+
+        self._valor = valor
+
+    @property
+    def valor(self):
+        return self._valor
+
+
+    def registrar(self,conta):
+
+        sucesso_transacao = conta.sacar(self.valor) 
+
+        if sucesso_transacao:
+
+            conta.historico.adicionar_transacao(self,'Saque',self.valor)
+
+
+def menu():
+    opcao_menu = input( """
+=============== MENU ===============
+                
+                [1] Já sou cliente
+                [2] Nova conta
+                [3] SAIR
+                
+
+=====================================             
+
+""")
+    return opcao_menu
+
+
+def main():
+    
+    clientes = []
+    contas = []
+    
+    
+    while True:
+        opcao = menu()
+
+        if opcao == "1":
+            
+            verificar_usuario = input("Digite seu Nome ")
+            usuario_encontrado = False
+            for cliente in clientes:
+                if cliente["Nome"] == verificar_usuario:
+                    usuario_encontrado = True
+                    
+
+                if usuario_encontrado:
+                    print("\t  Menu carregando....")
+                    def menu_cliente():
+
+                        while True:
+                            menu_cliente = input("""
+                                        \t [1] Deposito
+                                        \t [2] Saque
+                                        \t [3] Extrato 
+                                        \t [4] Voltar 
+                                                    
+                            """)
+
+                            if  menu_cliente == "1":
+                                print("-----------")
+                                
+                                valor_deposito = float(input("\t Digite valor deposito R$ "))
+                                dep = Deposito(valor_deposito)
+                                dep.registrar(contaCorrente)
+                                
+
+                            elif  menu_cliente == "2":  
+                                valor_saque = float(input("\t Digite valor saque R$ "))
+                                saq = Saque(valor_saque)
+                                saq.registrar(contaCorrente)
+                                
+
+                            elif menu_cliente == "3":
+                                
+                                
+                                print("          EXTRATO      ") 
+                                for dicionario in contaCorrente.historico.transacoes:
+                                    
+                                    
+                                    print('-----------------------')
+                                    for chave, valor in dicionario.items():
+                                        
+                                        print(f"{chave}: {valor}")
+                                        
+                                    print()  # Para adicionar uma linha em branco entre os dicionários
+                                    print(f"Saldo em conta R$ {contaCorrente.saldo}")                          
+            
+
+
+                            else:
+                                print("Voltando para menu inicial......") 
+                                return False   
+
+
+                    menu_cliente()     
+
+                
+
+            else:
+                print("Usuário não encontrado")
+                
+                
+        elif opcao == "2":
+            print("\t Seja bem Vindo! Vamos Precisar de alguns dados seus")
+            cpf =  input('\t Digite seu CPF: ') 
+            nome =  input("\tDigite seu Nome:")
+            data_nascimento =  input("\t Digite sua Data nascimento:")
+            endereco =  input("\t Digite seu Endereco:")
+            
+            c1 = PessoaFisica(cpf,nome,data_nascimento,endereco)
+            
+            clientes.append({"Nome" : c1.nome, "Cpf" : c1.cpf})
+            print("Cliente adicionado com sucesso!")
+            
+            contaCorrente =ContaCorrente.nova_conta(c1,"00111")
+            contas.append({"cliente" :contaCorrente.cliente.nome, "numero da conta" :contaCorrente.numero})  #Add nome do cliente e numero da conta na lista contas
+         
+        elif opcao == "3":
+
+            break     
+        
+            
+
+
+      
+main()

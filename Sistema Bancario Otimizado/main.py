@@ -86,14 +86,10 @@ def func_conta(conta_correntes:0):
          
 
 def main():
-    saldo = 0
-    limite = 500
-    numero_saques = 0
-    limite_saques = 0
-    extratos = []
-    usuarios = []
-    conta_correntes = []
-    func_usuario(usuarios)
+    
+    clientes = []
+    conta = []
+    
     
     while True:
         opcao = menu()
